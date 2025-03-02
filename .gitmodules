@@ -1,6 +1,0 @@
-[submodule "submodules/registry-service"]
-	path = submodules/registry-service
-	url = https://github.com/eugene-seb/registry-service.git
-[submodule "submodules/api-gateway"]
-	path = submodules/api-gateway
-	url = https://github.com/eugene-seb/api-gateway.git
