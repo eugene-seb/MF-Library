@@ -86,15 +86,15 @@ efficiently while ensuring modularity.
 
 - **Deployment Diagram**
 
-![](doc\Deployment-Diagram.png "Deployement diagram")
+![](doc/Deployment-Diagram.png "Deployement diagram")
 
 - **Flow of a User Request**
 
-![Flow Diagram](doc\Flow-user-request.png)
+![Flow Diagram](doc/Flow-user-request.png "Flow user request")
 
 - **Domain Class Diagram**
 
-![Domain Diagram](doc\Domain-class-diagram.png)
+![Domain Diagram](doc/Domain-class-diagram.png "Domain class diagram")
 
 ## References
 
