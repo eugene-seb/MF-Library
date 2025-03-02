@@ -1,0 +1,15 @@
+[submodule "submodules/user-service"]
+	path = submodules/user-service
+	url = https://github.com/eugene-seb/user-service.git
+[submodule "submodules/book-service"]
+	path = submodules/book-service
+	url = https://github.com/eugene-seb/book-service.git
+[submodule "submodules/review-service"]
+	path = submodules/review-service
+	url = https://github.com/eugene-seb/review-service.git
+[submodule "submodules/api-gateway"]
+	path = submodules/api-gateway
+	url = https://github.com/eugene-seb/api-gateway.git
+[submodule "submodules/registry-service"]
+	path = submodules/registry-service
+	url = https://github.com/eugene-seb/registry-service.git
