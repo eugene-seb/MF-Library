@@ -14,10 +14,11 @@ Cloning the main repo with submodules
 
 ## Context
 
-The **MF Library** project was born from the need to explore and apply **Spring Cloud** in a real-world microservices
-architecture. The objective is to gain hands-on experience in **Spring Boot, Spring Cloud, and microservices deployment
-**, while designing a **scalable and maintainable application**. By implementing industry’s best practices, this project
-will serve as a practical learning experience in **distributed systems, API management, and cloud infrastructure**.
+The **MF Library** (**M**y **F**ree **Library**) was born from the need to explore and apply **Spring Cloud** in a
+real-world microservices architecture. The objective was to gain hands-on experience in **Spring Boot, Spring Cloud, and
+microservices deployment**, while designing a **scalable and maintainable application**. By implementing industry’s best
+practices, this project serve as a practical learning experience in **distributed systems, API management, and cloud
+infrastructure**.
 
 ## Objective
 
