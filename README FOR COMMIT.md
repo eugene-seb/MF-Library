@@ -27,10 +27,13 @@ Example of adding submodules to the main repo:
 ### Cloning the main repo with submodules
 
 5- Cloning the Main Repository with Submodules:
-git clone --recurse-submodules https://github.com/eugene-seb/MF-Library.git
+
+`git clone --recurse-submodules https://github.com/eugene-seb/MF-Library.git`
 
 ### Bring changes on the main repo
 
-6- Updating Submodules: If the submodule updates, run:
-git submodule update --remote --merge
+6- If the submodule updates, run on the main repo:
 
+`git submodule update --remote --merge`
+
+And the push.
