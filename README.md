@@ -4,6 +4,10 @@
 **Email:** etoundisebastien@gmail.com  
 **Location:** Lyon, France
 
+***
+
+The issues are tracked and available [**here**](https://github.com/users/eugene-seb/projects/1)
+
 Cloning the main repo with submodules
 
 - `git clone --recurse-submodules https://github.com/eugene-seb/MF-Library.git`
