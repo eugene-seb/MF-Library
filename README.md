@@ -18,28 +18,35 @@ Cloning the main repo with submodules
 
 ## Context
 
-The **MF Library** (**M**y **F**ree **Library**) was born from the need to explore and apply **Spring Cloud** in a
-real-world microservices architecture. The objective was to gain hands-on experience in **Spring Boot, Spring Cloud, and
-microservices deployment**, while designing a **scalable and maintainable application**. By implementing industry’s best
-practices, this project serve as a practical learning experience in **distributed systems, API management, and cloud
+The **MF Library** (**M**y **F**ree **Library**) was born from the need to explore and apply *
+*Spring Cloud** in a
+real-world microservices architecture. The objective was to gain hands-on experience in **Spring
+Boot, Spring Cloud, and
+microservices deployment**, while designing a **scalable and maintainable application**. By
+implementing industry’s best
+practices, this project serve as a practical learning experience in **distributed systems, API
+management, and cloud
 infrastructure**.
 
 ## Objective
 
-The goal of **MF Library** is to create an **online platform** where users can access a vast collection of **free public
+The goal of **MF Library** is to create an **online platform** where users can access a vast
+collection of **free public
 domain books**. The platform will allow users to:
 
 - **Search, browse, and read books** available in the database.
 - **Create an account** to personalize their experience.
 - **Rate and review books** to provide community-driven recommendations.
 
-This system should be **scalable, resilient, and easy to extend**, ensuring a seamless experience for users.
+This system should be **scalable, resilient, and easy to extend**, ensuring a seamless experience
+for users.
 
 ## Technical Description
 
 ### System Architecture
 
-MF Library follows a **microservices architecture** using **Spring Cloud**, allowing independent services to communicate
+MF Library follows a **microservices architecture** using **Spring Cloud**, allowing independent
+services to communicate
 efficiently while ensuring modularity.
 
 #### **1. User Service**
@@ -70,13 +77,14 @@ efficiently while ensuring modularity.
 ### **Technologies & Tools**
 
 - **Database**
-    - **PostgreSQL** is the primary database engine chosen for its robustness and compatibility with Spring Boot.
-    - Each microservice will have **its own database instance**.
+    - **PostgreSQL** is the primary database engine chosen for its robustness and compatibility with
+      Spring Boot.
+        - Each microservice will have **its own database instance**.
 
 
 - Docker & Kubernetes
 - Cloud Hosting (AWS or Local Kubernetes Cluster)
-- Spring Cloud Config & Eureka Server
+- Spring Cloud Config & Eureka Server, Kafka
 - CI/CD Pipeline (GitHub Actions)
 
 
