@@ -13,3 +13,6 @@
 [submodule "submodules/registry-service"]
 	path = submodules/registry-service
 	url = https://github.com/eugene-seb/registry-service.git
+[submodule "submodules/mflibrary-frontend"]
+	path = submodules/mflibrary-frontend
+	url = https://github.com/eugene-seb/mflibrary-frontend.git
