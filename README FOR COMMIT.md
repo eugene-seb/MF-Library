@@ -20,9 +20,9 @@ Example of adding submodules to the main repo:
 
 #### 4- Commit and Push Changes to GitHub:
 
-`git add .gitmodules submodules/SubRepo`
-`git commit -m "Added submodule"`
-`git push origin main`
+- `git add .gitmodules submodules/<SubRepo>`
+- `git commit -m "Added <submodule>"`
+- `git push origin master`
 
 ### Cloning the main repo with submodules
 
