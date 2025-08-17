@@ -1,0 +1,131 @@
+services:
+  zookeeper:
+    container_name: mflibrary_zookeeper
+    image: confluentinc/cp-zookeeper:7.5.0
+    ports:
+      - "2181:2181"
+    networks:
+      - mflibrary-network
+    environment:
+      ZOOKEEPER_CLIENT_PORT: 2181
+      ZOOKEEPER_TICK_TIME: 2000
+
+  kafka:
+    container_name: mflibrary_kafka
+    image: confluentinc/cp-kafka:7.5.0
+    ports:
+      - "9092:9092"
+    networks:
+      - mflibrary-network
+    environment:
+      KAFKA_BROKER_ID: 1
+      KAFKA_ZOOKEEPER_CONNECT: zookeeper:2181
+      KAFKA_LISTENERS: PLAINTEXT://:9092,PLAINTEXT_HOST://:29092
+      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://kafka:9092,PLAINTEXT_HOST://localhost:29092
+      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: PLAINTEXT:PLAINTEXT,PLAINTEXT_HOST:PLAINTEXT
+      KAFKA_INTER_BROKER_LISTENER_NAME: PLAINTEXT
+      KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
+    depends_on:
+      - zookeeper
+
+  keycloak:
+    container_name: mflibrary_keycloak
+    image: quay.io/keycloak/keycloak:24.0.1
+    ports:
+      - "8085:8080"
+    networks:
+      - mflibrary-network
+    environment:
+      KEYCLOAK_ADMIN: admin
+      KEYCLOAK_ADMIN_PASSWORD: admin
+    command: start-dev --import-realm
+    volumes:
+      - ./.infra/keycloak/app-mflibrary-realm-export.json:/opt/keycloak/data/import/app-mflibrary-realm-export.json
+      - ./.infra/keycloak/master-realm-export.json:/opt/keycloak/data/import/master-realm-export.json
+
+  postgres:
+    container_name: mflibrary_postgres
+    image: postgres:17-alpine
+    ports:
+      - "5432:5432"
+    networks:
+      - mflibrary-network
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+    volumes:
+      - ./.infra/postgres/init:/docker-entrypoint-initdb.d
+
+  registry-service:
+    container_name: mflibrary_registry-service
+    build: ./services/registry-service
+    ports:
+      - "8761:8761"
+    networks:
+      - mflibrary-network
+    environment:
+      - SPRING_PROFILES_ACTIVE=docker
+    depends_on:
+      - kafka
+      - keycloak
+
+  api-gateway:
+    container_name: mflibrary_api-gateway
+    build: ./services/api-gateway
+    ports:
+      - "8765:8765"
+    networks:
+      - mflibrary-network
+    environment:
+      - SPRING_PROFILES_ACTIVE=docker
+    depends_on:
+      - registry-service
+
+  user-service:
+    container_name: mflibrary_user-service
+    build: ./services/user-service
+    ports:
+      - "8081:8081"
+    networks:
+      - mflibrary-network
+    environment:
+      - SPRING_PROFILES_ACTIVE=docker
+    depends_on:
+      - kafka
+      - keycloak
+      - postgres
+      - registry-service
+
+  book-service:
+    container_name: mflibrary_book-service
+    build: ./services/book-service
+    ports:
+      - "8082:8082"
+    networks:
+      - mflibrary-network
+    environment:
+      - SPRING_PROFILES_ACTIVE=docker
+    depends_on:
+      - kafka
+      - keycloak
+      - postgres
+      - registry-service
+
+  review-service:
+    container_name: mflibrary_review-service
+    build: ./services/review-service
+    ports:
+      - "8083:8083"
+    networks:
+      - mflibrary-network
+    environment:
+      - SPRING_PROFILES_ACTIVE=docker
+    depends_on:
+      - kafka
+      - keycloak
+      - postgres
+      - registry-service
+
+networks:
+  mflibrary-network:
+    driver: bridge
