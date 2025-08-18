@@ -48,9 +48,9 @@ jobs:
               - 'mflibrary-frontend/**'
 
   #-----------------------------------------------------------------------
-  #--- Build and push user-service Docker image
+  #--- Test user-service
   #-----------------------------------------------------------------------
-  build-user-service:
+  test-user-service:
     needs: changes
     if: needs.changes.outputs.user == 'true'
     runs-on: ubuntu-latest
@@ -74,9 +74,9 @@ jobs:
           ./submodules/user-service/mvnw -f ./submodules/user-service/pom.xml clean test
 
   #-----------------------------------------------------------------------
-  #--- Build and push book-service Docker image
+  #--- Test book-service
   #-----------------------------------------------------------------------
-  build-book-service:
+  test-book-service:
     needs: changes
     if: needs.changes.outputs.book == 'true'
     runs-on: ubuntu-latest
@@ -100,9 +100,9 @@ jobs:
           ./submodules/book-service/mvnw -f ./submodules/book-service/pom.xml clean test
 
   #-----------------------------------------------------------------------
-  #--- Build and push review-service Docker image
+  #--- Test review-service
   #-----------------------------------------------------------------------
-  build-review-service:
+  test-review-service:
     needs: changes
     if: needs.changes.outputs.review == 'true'
     runs-on: ubuntu-latest
@@ -125,9 +125,9 @@ jobs:
           ./submodules/review-service/mvnw -f ./submodules/review-service/pom.xml clean test
 
   #-----------------------------------------------------------------------
-  #--- Build and push registry-service Docker image
+  #--- Test registry-service
   #-----------------------------------------------------------------------
-  build-registry-service:
+  test-registry-service:
     needs: changes
     if: needs.changes.outputs.registry_service == 'true'
     runs-on: ubuntu-latest
@@ -150,9 +150,9 @@ jobs:
           ./submodules/registry-service/mvnw -f ./submodules/registry-service/pom.xml clean test
 
   #-----------------------------------------------------------------------
-  #--- Build and push api-gateway Docker image
+  #--- Test api-gateway
   #-----------------------------------------------------------------------
-  build-api-gateway:
+  test-api-gateway:
     needs: changes
     if: needs.changes.outputs.api_gateway == 'true'
     runs-on: ubuntu-latest
@@ -175,9 +175,9 @@ jobs:
           ./submodules/api-gateway/mvnw -f ./submodules/api-gateway/pom.xml clean test
 
   #-----------------------------------------------------------------------
-  #--- Build and push mflibrary-frontend Docker image
+  #--- Test mflibrary-frontend
   #-----------------------------------------------------------------------
-  build-mflibrary-frontend:
+  test-mflibrary-frontend:
     needs: changes
     if: needs.changes.outputs.frontend == 'true'
     runs-on: ubuntu-latest
