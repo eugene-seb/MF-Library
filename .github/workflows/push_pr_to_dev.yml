@@ -35,15 +35,15 @@ jobs:
         with:
           filters: |
             user:
-              - 'services/user-service/**'
+              - 'submodules/user-service/**'
             book:
-              - 'services/book-service/**'
+              - 'submodules/book-service/**'
             review:
-              - 'services/review-service/**'
+              - 'submodules/review-service/**'
             api_gateway:
-              - 'services/api-gateway/**'
+              - 'submodules/api-gateway/**'
             registry_service:
-              - 'services/registry-service/**'
+              - 'submodules/registry-service/**'
             frontend:
               - 'mflibrary-frontend/**'
 
