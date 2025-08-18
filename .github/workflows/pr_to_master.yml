@@ -28,14 +28,6 @@ jobs:
     runs-on: ubuntu-latest
     needs: validate-branch
     if: success()
-    outputs:
-      user: ${{ steps.filter.outputs.user }}
-      book: ${{ steps.filter.outputs.book }}
-      review: ${{ steps.filter.outputs.review }}
-      api_gateway: ${{ steps.filter.outputs.api_gateway }}
-      registry_service: ${{ steps.filter.outputs.registry_service }}
-      frontend: ${{ steps.filter.outputs.frontend }}
-    
     steps:
       - name: Checkout the main repository
         uses: actions/checkout@v4
@@ -59,6 +51,13 @@ jobs:
               - 'submodules/registry-service/**'
             frontend:
               - 'mflibrary-frontend/**'
+    outputs:
+      user: ${{ steps.filter.outputs.user }}
+      book: ${{ steps.filter.outputs.book }}
+      review: ${{ steps.filter.outputs.review }}
+      api_gateway: ${{ steps.filter.outputs.api_gateway }}
+      registry_service: ${{ steps.filter.outputs.registry_service }}
+      frontend: ${{ steps.filter.outputs.frontend }}
 
   #-----------------------------------------------------------------------
   #--- Build and push user-service Docker image
