@@ -1,5 +1,11 @@
 # Execute only if it's a PR which comes from dev
+
 name: PR to master
+
+# This pipeline runs everytime there is a PR on master.
+# Because the changes on the submodules are track on their own GitHub project,
+# I intentionally don't listen to the changes of each submodule in order to trigger this pipeline.
+
 on:
   pull_request:
     branches:
@@ -22,49 +28,10 @@ jobs:
           fi
 
   #-----------------------------------------------------------------------
-  #--- Detect the changes
-  #-----------------------------------------------------------------------
-  changes:
-    runs-on: ubuntu-latest
-    needs: validate-branch
-    if: success()
-    steps:
-      - name: Checkout the main repository
-        uses: actions/checkout@v4
-        with:
-          submodules: true
-
-      - name: Detect changes
-        id: filter
-        uses: dorny/paths-filter@v3
-        with:
-          filters: |
-            user:
-              - 'submodules/user-service/**'
-            book:
-              - 'submodules/book-service/**'
-            review:
-              - 'submodules/review-service/**'
-            api_gateway:
-              - 'submodules/api-gateway/**'
-            registry_service:
-              - 'submodules/registry-service/**'
-            frontend:
-              - 'mflibrary-frontend/**'
-    outputs:
-      user: ${{ steps.filter.outputs.user }}
-      book: ${{ steps.filter.outputs.book }}
-      review: ${{ steps.filter.outputs.review }}
-      api_gateway: ${{ steps.filter.outputs.api_gateway }}
-      registry_service: ${{ steps.filter.outputs.registry_service }}
-      frontend: ${{ steps.filter.outputs.frontend }}
-
-  #-----------------------------------------------------------------------
   #--- Build and push user-service Docker image
   #-----------------------------------------------------------------------
   build-user-service:
-    needs: changes
-    if: needs.changes.outputs.user == 'true'
+    needs: validate-branch
     runs-on: ubuntu-latest
 
     steps:
@@ -97,14 +64,19 @@ jobs:
         with:
           context: ./submodules/user-service
           push: true
-          tags: ghcr.io/${{ github.repository }}/user-service:latest
+          tags: |
+            ghcr.io/${{ github.repository }}/user-service:${{ github.sha }}
+            ghcr.io/${{ github.repository }}/user-service:latest
+          # Use Docker build cache stored in GitHub Container Registry to speed up builds.
+          # 'cache-from' pulls existing cache layers; 'cache-to' pushes new layers for future
+          cache-from: type=registry,ref=ghcr.io/${{ github.repository }}/user-service:buildcache
+          cache-to: type=registry,ref=ghcr.io/${{ github.repository }}/user-service:buildcache,mode=max
 
   #-----------------------------------------------------------------------
   #--- Build and push book-service Docker image
   #-----------------------------------------------------------------------
   build-book-service:
-    needs: changes
-    if: needs.changes.outputs.book == 'true'
+    needs: validate-branch
     runs-on: ubuntu-latest
 
     steps:
@@ -137,14 +109,19 @@ jobs:
         with:
           context: ./submodules/book-service
           push: true
-          tags: ghcr.io/${{ github.repository }}/book-service:latest
+          tags: |
+            ghcr.io/${{ github.repository }}/book-service:${{ github.sha }}
+            ghcr.io/${{ github.repository }}/book-service:latest
+          # Use Docker build cache stored in GitHub Container Registry to speed up builds.
+          # 'cache-from' pulls existing cache layers; 'cache-to' pushes new layers for future
+          cache-from: type=registry,ref=ghcr.io/${{ github.repository }}/book-service:buildcache
+          cache-to: type=registry,ref=ghcr.io/${{ github.repository }}/book-service:buildcache,mode=max
 
   #-----------------------------------------------------------------------
   #--- Build and push review-service Docker image
   #-----------------------------------------------------------------------
   build-review-service:
-    needs: changes
-    if: needs.changes.outputs.review == 'true'
+    needs: validate-branch
     runs-on: ubuntu-latest
     steps:
       - name: Checkout the submodule review-service
@@ -176,14 +153,19 @@ jobs:
         with:
           context: ./submodules/review-service
           push: true
-          tags: ghcr.io/${{ github.repository }}/review-service:latest
+          tags: |
+            ghcr.io/${{ github.repository }}/review-service:${{ github.sha }}
+            ghcr.io/${{ github.repository }}/review-service:latest
+          # Use Docker build cache stored in GitHub Container Registry to speed up builds.
+          # 'cache-from' pulls existing cache layers; 'cache-to' pushes new layers for future
+          cache-from: type=registry,ref=ghcr.io/${{ github.repository }}/review-service:buildcache
+          cache-to: type=registry,ref=ghcr.io/${{ github.repository }}/review-service:buildcache,mode=max
 
   #-----------------------------------------------------------------------
   #--- Build and push registry-service Docker image
   #-----------------------------------------------------------------------
   build-registry-service:
-    needs: changes
-    if: needs.changes.outputs.registry_service == 'true'
+    needs: validate-branch
     runs-on: ubuntu-latest
     steps:
       - name: Checkout the submodule registry-service
@@ -215,14 +197,19 @@ jobs:
         with:
           context: ./submodules/registry-service
           push: true
-          tags: ghcr.io/${{ github.repository }}/registry-service:latest
+          tags: |
+            ghcr.io/${{ github.repository }}/registry-service:${{ github.sha }}
+            ghcr.io/${{ github.repository }}/registry-service:latest
+          # Use Docker build cache stored in GitHub Container Registry to speed up builds.
+          # 'cache-from' pulls existing cache layers; 'cache-to' pushes new layers for future
+          cache-from: type=registry,ref=ghcr.io/${{ github.repository }}/registry-service:buildcache
+          cache-to: type=registry,ref=ghcr.io/${{ github.repository }}/registry-service:buildcache,mode=max
 
   #-----------------------------------------------------------------------
   #--- Build and push api-gateway Docker image
   #-----------------------------------------------------------------------
   build-api-gateway:
-    needs: changes
-    if: needs.changes.outputs.api_gateway == 'true'
+    needs: validate-branch
     runs-on: ubuntu-latest
     steps:
       - name: Checkout the submodule api-gateway
@@ -254,17 +241,23 @@ jobs:
         with:
           context: ./submodules/api-gateway
           push: true
-          tags: ghcr.io/${{ github.repository }}/api-gateway:latest
+          tags: |
+            ghcr.io/${{ github.repository }}/api-gateway:${{ github.sha }}
+            ghcr.io/${{ github.repository }}/api-gateway:latest
+          # Use Docker build cache stored in GitHub Container Registry to speed up builds.
+          # 'cache-from' pulls existing cache layers; 'cache-to' pushes new layers for future
+          cache-from: type=registry,ref=ghcr.io/${{ github.repository }}/api-gateway:buildcache
+          cache-to: type=registry,ref=ghcr.io/${{ github.repository }}/api-gateway:buildcache,mode=max
 
   #-----------------------------------------------------------------------
   #--- Build and push mflibrary-frontend Docker image
   #-----------------------------------------------------------------------
   build-mflibrary-frontend:
-    needs: changes
-    if: needs.changes.outputs.frontend == 'true'
+    needs: validate-branch
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - name: Check out repository
+        uses: actions/checkout@v4
         with:
           submodules: true
 
@@ -277,20 +270,33 @@ jobs:
         run: npm ci
         working-directory: ./mflibrary-frontend
 
+      - name: Install Chrome
+        run: sudo apt-get update && sudo apt-get install -y google-chrome-stable
+
       - name: Run frontend tests
-        run: npm test -- --watch=false --browsers=ChromeHeadless
+        run: npx ng test --watch=false --browsers=ChromeHeadless
         working-directory: ./mflibrary-frontend
 
-      - name: Login to GitHub Container Registry
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Log in to GitHub Container Registry
         uses: docker/login-action@v3
         with:
           registry: ghcr.io
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Build and push mflibrary-frontend Docker image
-        uses: docker/build-push-action@v6
+      - name: Build and Push mflibrary-frontend Docker Image
+        uses: docker/build-push-action@v5
         with:
           context: ./mflibrary-frontend
           push: true
-          tags: ghcr.io/${{ github.repository }}/mflibrary-frontend:latest
+          file: ./mflibrary-frontend/Dockerfile
+          tags: |
+            ghcr.io/${{ github.repository }}/mflibrary-frontend:latest
+            ghcr.io/${{ github.repository }}/mflibrary-frontend:${{ github.sha }}
+          # Use Docker build cache stored in GitHub Container Registry to speed up builds.
+          # 'cache-from' pulls existing cache layers; 'cache-to' pushes new layers for future
+          cache-from: type=registry,ref=ghcr.io/${{ github.repository }}/mflibrary-frontend:buildcache
+          cache-to: type=registry,ref=ghcr.io/${{ github.repository }}/mflibrary-frontend:buildcache,mode=max

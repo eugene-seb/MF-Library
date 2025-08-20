@@ -1,5 +1,11 @@
 # Execute on every push or PR to dev
+
 name: Push or PR to dev
+
+# This pipeline runs everytime there is a PR or push on dev.
+# Because the changes on the submodules are track on their own GitHub project,
+# I intentionally don't listen to the changes of each submodule in order to trigger this pipeline.
+
 on:
   push:
     branches:
@@ -7,49 +13,12 @@ on:
   pull_request:
     branches:
       - dev
+
 jobs:
-  #-----------------------------------------------------------------------
-  #--- Detect the changes
-  #-----------------------------------------------------------------------
-  changes:
-    runs-on: ubuntu-latest
-    steps:
-      - name: Checkout the main repository
-        uses: actions/checkout@v4
-        with:
-          submodules: true
-
-      - name: Detect changes
-        id: filter
-        uses: dorny/paths-filter@v3
-        with:
-          filters: |
-            user:
-              - 'submodules/user-service/**'
-            book:
-              - 'submodules/book-service/**'
-            review:
-              - 'submodules/review-service/**'
-            api_gateway:
-              - 'submodules/api-gateway/**'
-            registry_service:
-              - 'submodules/registry-service/**'
-            frontend:
-              - 'mflibrary-frontend/**'
-    outputs:
-      user: ${{ steps.filter.outputs.user }}
-      book: ${{ steps.filter.outputs.book }}
-      review: ${{ steps.filter.outputs.review }}
-      api_gateway: ${{ steps.filter.outputs.api_gateway }}
-      registry_service: ${{ steps.filter.outputs.registry_service }}
-      frontend: ${{ steps.filter.outputs.frontend }}
-
   #-----------------------------------------------------------------------
   #--- Test user-service
   #-----------------------------------------------------------------------
   test-user-service:
-    needs: changes
-    if: needs.changes.outputs.user == 'true'
     runs-on: ubuntu-latest
 
     steps:
@@ -74,8 +43,6 @@ jobs:
   #--- Test book-service
   #-----------------------------------------------------------------------
   test-book-service:
-    needs: changes
-    if: needs.changes.outputs.book == 'true'
     runs-on: ubuntu-latest
 
     steps:
@@ -100,8 +67,6 @@ jobs:
   #--- Test review-service
   #-----------------------------------------------------------------------
   test-review-service:
-    needs: changes
-    if: needs.changes.outputs.review == 'true'
     runs-on: ubuntu-latest
     steps:
       - name: Checkout the submodule review-service
@@ -125,8 +90,6 @@ jobs:
   #--- Test registry-service
   #-----------------------------------------------------------------------
   test-registry-service:
-    needs: changes
-    if: needs.changes.outputs.registry_service == 'true'
     runs-on: ubuntu-latest
     steps:
       - name: Checkout the submodule registry-service
@@ -150,8 +113,6 @@ jobs:
   #--- Test api-gateway
   #-----------------------------------------------------------------------
   test-api-gateway:
-    needs: changes
-    if: needs.changes.outputs.api_gateway == 'true'
     runs-on: ubuntu-latest
     steps:
       - name: Checkout the submodule api-gateway
@@ -175,11 +136,10 @@ jobs:
   #--- Test mflibrary-frontend
   #-----------------------------------------------------------------------
   test-mflibrary-frontend:
-    needs: changes
-    if: needs.changes.outputs.frontend == 'true'
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - name: Check out repository
+        uses: actions/checkout@v4
         with:
           submodules: true
 
@@ -192,6 +152,9 @@ jobs:
         run: npm ci
         working-directory: ./mflibrary-frontend
 
+      - name: Install Chrome
+        run: sudo apt-get update && sudo apt-get install -y google-chrome-stable
+
       - name: Run frontend tests
-        run: npm test -- --watch=false --browsers=ChromeHeadless
+        run: npx ng test --watch=false --browsers=ChromeHeadless
         working-directory: ./mflibrary-frontend
