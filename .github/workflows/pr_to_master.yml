@@ -28,14 +28,17 @@ jobs:
           fi
 
   #-----------------------------------------------------------------------
-  #--- Build and push user-service Docker image
+  #--- Build backend services
   #-----------------------------------------------------------------------
-  build-user-service:
+  build-backend-services:
     needs: validate-branch
     runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        service: [ api-gateway, registry-service, user-service, book-service, review-service ]
 
     steps:
-      - name: Checkout the submodule user-service
+      - name: Checkout repository
         uses: actions/checkout@v4
         with:
           submodules: true
@@ -47,10 +50,16 @@ jobs:
           distribution: 'temurin'
           cache: 'maven'
 
-      - name: Run the user-service tests
+      - name: Run tests
         run: |
-          chmod +x ./submodules/user-service/mvnw
-          ./submodules/user-service/mvnw -f ./submodules/user-service/pom.xml clean test
+          chmod +x ./submodules/${{ matrix.service }}/mvnw
+          ./submodules/${{ matrix.service }}/mvnw -f ./submodules/${{ matrix.service }}/pom.xml clean test
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+        with:
+          install: true
+          driver: docker-container
 
       - name: Login to GitHub Container Registry
         uses: docker/login-action@v3
@@ -59,195 +68,16 @@ jobs:
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Build and push user-service Docker image
+      - name: Build and push Docker image
         uses: docker/build-push-action@v6
         with:
-          context: ./submodules/user-service
+          context: ./submodules/${{ matrix.service }}
           push: true
           tags: |
-            ghcr.io/${{ github.repository }}/user-service:${{ github.sha }}
-            ghcr.io/${{ github.repository }}/user-service:latest
-          # Use Docker build cache stored in GitHub Container Registry to speed up builds.
-          # 'cache-from' pulls existing cache layers; 'cache-to' pushes new layers for future
-          cache-from: type=registry,ref=ghcr.io/${{ github.repository }}/user-service:buildcache
-          cache-to: type=registry,ref=ghcr.io/${{ github.repository }}/user-service:buildcache,mode=max
-
-  #-----------------------------------------------------------------------
-  #--- Build and push book-service Docker image
-  #-----------------------------------------------------------------------
-  build-book-service:
-    needs: validate-branch
-    runs-on: ubuntu-latest
-
-    steps:
-      - name: Checkout the submodule book-service
-        uses: actions/checkout@v4
-        with:
-          submodules: true
-
-      - name: Set up JDK 21
-        uses: actions/setup-java@v4
-        with:
-          java-version: '21'
-          distribution: 'temurin'
-          cache: 'maven'
-
-      - name: Run the book-service tests
-        run: |
-          chmod +x ./submodules/book-service/mvnw
-          ./submodules/book-service/mvnw -f ./submodules/book-service/pom.xml clean test
-
-      - name: Login to GitHub Container Registry
-        uses: docker/login-action@v3
-        with:
-          registry: ghcr.io
-          username: ${{ github.actor }}
-          password: ${{ secrets.GITHUB_TOKEN }}
-
-      - name: Build and push book-service Docker image
-        uses: docker/build-push-action@v6
-        with:
-          context: ./submodules/book-service
-          push: true
-          tags: |
-            ghcr.io/${{ github.repository }}/book-service:${{ github.sha }}
-            ghcr.io/${{ github.repository }}/book-service:latest
-          # Use Docker build cache stored in GitHub Container Registry to speed up builds.
-          # 'cache-from' pulls existing cache layers; 'cache-to' pushes new layers for future
-          cache-from: type=registry,ref=ghcr.io/${{ github.repository }}/book-service:buildcache
-          cache-to: type=registry,ref=ghcr.io/${{ github.repository }}/book-service:buildcache,mode=max
-
-  #-----------------------------------------------------------------------
-  #--- Build and push review-service Docker image
-  #-----------------------------------------------------------------------
-  build-review-service:
-    needs: validate-branch
-    runs-on: ubuntu-latest
-    steps:
-      - name: Checkout the submodule review-service
-        uses: actions/checkout@v4
-        with:
-          submodules: true
-
-      - name: Set up JDK 21
-        uses: actions/setup-java@v4
-        with:
-          java-version: '21'
-          distribution: 'temurin'
-          cache: 'maven'
-
-      - name: Run the review-service tests
-        run: |
-          chmod +x ./submodules/review-service/mvnw
-          ./submodules/review-service/mvnw -f ./submodules/review-service/pom.xml clean test
-
-      - name: Login to GitHub Container Registry
-        uses: docker/login-action@v3
-        with:
-          registry: ghcr.io
-          username: ${{ github.actor }}
-          password: ${{ secrets.GITHUB_TOKEN }}
-
-      - name: Build and push review-service Docker image
-        uses: docker/build-push-action@v6
-        with:
-          context: ./submodules/review-service
-          push: true
-          tags: |
-            ghcr.io/${{ github.repository }}/review-service:${{ github.sha }}
-            ghcr.io/${{ github.repository }}/review-service:latest
-          # Use Docker build cache stored in GitHub Container Registry to speed up builds.
-          # 'cache-from' pulls existing cache layers; 'cache-to' pushes new layers for future
-          cache-from: type=registry,ref=ghcr.io/${{ github.repository }}/review-service:buildcache
-          cache-to: type=registry,ref=ghcr.io/${{ github.repository }}/review-service:buildcache,mode=max
-
-  #-----------------------------------------------------------------------
-  #--- Build and push registry-service Docker image
-  #-----------------------------------------------------------------------
-  build-registry-service:
-    needs: validate-branch
-    runs-on: ubuntu-latest
-    steps:
-      - name: Checkout the submodule registry-service
-        uses: actions/checkout@v4
-        with:
-          submodules: true
-
-      - name: Set up JDK 21
-        uses: actions/setup-java@v4
-        with:
-          java-version: '21'
-          distribution: 'temurin'
-          cache: 'maven'
-
-      - name: Run the registry-service tests
-        run: |
-          chmod +x ./submodules/registry-service/mvnw
-          ./submodules/registry-service/mvnw -f ./submodules/registry-service/pom.xml clean test
-
-      - name: Login to GitHub Container Registry
-        uses: docker/login-action@v3
-        with:
-          registry: ghcr.io
-          username: ${{ github.actor }}
-          password: ${{ secrets.GITHUB_TOKEN }}
-
-      - name: Build and push registry-service Docker image
-        uses: docker/build-push-action@v6
-        with:
-          context: ./submodules/registry-service
-          push: true
-          tags: |
-            ghcr.io/${{ github.repository }}/registry-service:${{ github.sha }}
-            ghcr.io/${{ github.repository }}/registry-service:latest
-          # Use Docker build cache stored in GitHub Container Registry to speed up builds.
-          # 'cache-from' pulls existing cache layers; 'cache-to' pushes new layers for future
-          cache-from: type=registry,ref=ghcr.io/${{ github.repository }}/registry-service:buildcache
-          cache-to: type=registry,ref=ghcr.io/${{ github.repository }}/registry-service:buildcache,mode=max
-
-  #-----------------------------------------------------------------------
-  #--- Build and push api-gateway Docker image
-  #-----------------------------------------------------------------------
-  build-api-gateway:
-    needs: validate-branch
-    runs-on: ubuntu-latest
-    steps:
-      - name: Checkout the submodule api-gateway
-        uses: actions/checkout@v4
-        with:
-          submodules: true
-
-      - name: Set up JDK 21
-        uses: actions/setup-java@v4
-        with:
-          java-version: '21'
-          distribution: 'temurin'
-          cache: 'maven'
-
-      - name: Run the api-gateway tests
-        run: |
-          chmod +x ./submodules/api-gateway/mvnw
-          ./submodules/api-gateway/mvnw -f ./submodules/api-gateway/pom.xml clean test
-
-      - name: Login to GitHub Container Registry
-        uses: docker/login-action@v3
-        with:
-          registry: ghcr.io
-          username: ${{ github.actor }}
-          password: ${{ secrets.GITHUB_TOKEN }}
-
-      - name: Build and push api-gateway Docker image
-        uses: docker/build-push-action@v6
-        with:
-          context: ./submodules/api-gateway
-          push: true
-          tags: |
-            ghcr.io/${{ github.repository }}/api-gateway:${{ github.sha }}
-            ghcr.io/${{ github.repository }}/api-gateway:latest
-          # Use Docker build cache stored in GitHub Container Registry to speed up builds.
-          # 'cache-from' pulls existing cache layers; 'cache-to' pushes new layers for future
-          cache-from: type=registry,ref=ghcr.io/${{ github.repository }}/api-gateway:buildcache
-          cache-to: type=registry,ref=ghcr.io/${{ github.repository }}/api-gateway:buildcache,mode=max
+            ghcr.io/${{ github.repository }}/${{ matrix.service }}:${{ github.sha }}
+            ghcr.io/${{ github.repository }}/${{ matrix.service }}:latest
+          cache-from: type=registry,ref=ghcr.io/${{ github.repository }}/${{ matrix.service }}:buildcache
+          cache-to: type=registry,ref=ghcr.io/${{ github.repository }}/${{ matrix.service }}:buildcache,mode=max
 
   #-----------------------------------------------------------------------
   #--- Build and push mflibrary-frontend Docker image
@@ -279,6 +109,9 @@ jobs:
 
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v3
+        with:
+          install: true
+          driver: docker-container
 
       - name: Log in to GitHub Container Registry
         uses: docker/login-action@v3

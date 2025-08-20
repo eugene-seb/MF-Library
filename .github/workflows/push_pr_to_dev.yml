@@ -16,13 +16,16 @@ on:
 
 jobs:
   #-----------------------------------------------------------------------
-  #--- Test user-service
+  #--- Test backend services
   #-----------------------------------------------------------------------
-  test-user-service:
+  test-backend-services:
     runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        service: [ api-gateway, registry-service, user-service, book-service, review-service ]
 
     steps:
-      - name: Checkout the submodule user-service
+      - name: Checkout repository
         uses: actions/checkout@v4
         with:
           submodules: true
@@ -34,103 +37,10 @@ jobs:
           distribution: 'temurin'
           cache: 'maven'
 
-      - name: Run the user-service tests
+      - name: Run tests
         run: |
-          chmod +x ./submodules/user-service/mvnw
-          ./submodules/user-service/mvnw -f ./submodules/user-service/pom.xml clean test
-
-  #-----------------------------------------------------------------------
-  #--- Test book-service
-  #-----------------------------------------------------------------------
-  test-book-service:
-    runs-on: ubuntu-latest
-
-    steps:
-      - name: Checkout the submodule book-service
-        uses: actions/checkout@v4
-        with:
-          submodules: true
-
-      - name: Set up JDK 21
-        uses: actions/setup-java@v4
-        with:
-          java-version: '21'
-          distribution: 'temurin'
-          cache: 'maven'
-
-      - name: Run the book-service tests
-        run: |
-          chmod +x ./submodules/book-service/mvnw
-          ./submodules/book-service/mvnw -f ./submodules/book-service/pom.xml clean test
-
-  #-----------------------------------------------------------------------
-  #--- Test review-service
-  #-----------------------------------------------------------------------
-  test-review-service:
-    runs-on: ubuntu-latest
-    steps:
-      - name: Checkout the submodule review-service
-        uses: actions/checkout@v4
-        with:
-          submodules: true
-
-      - name: Set up JDK 21
-        uses: actions/setup-java@v4
-        with:
-          java-version: '21'
-          distribution: 'temurin'
-          cache: 'maven'
-
-      - name: Run the review-service tests
-        run: |
-          chmod +x ./submodules/review-service/mvnw
-          ./submodules/review-service/mvnw -f ./submodules/review-service/pom.xml clean test
-
-  #-----------------------------------------------------------------------
-  #--- Test registry-service
-  #-----------------------------------------------------------------------
-  test-registry-service:
-    runs-on: ubuntu-latest
-    steps:
-      - name: Checkout the submodule registry-service
-        uses: actions/checkout@v4
-        with:
-          submodules: true
-
-      - name: Set up JDK 21
-        uses: actions/setup-java@v4
-        with:
-          java-version: '21'
-          distribution: 'temurin'
-          cache: 'maven'
-
-      - name: Run the registry-service tests
-        run: |
-          chmod +x ./submodules/registry-service/mvnw
-          ./submodules/registry-service/mvnw -f ./submodules/registry-service/pom.xml clean test
-
-  #-----------------------------------------------------------------------
-  #--- Test api-gateway
-  #-----------------------------------------------------------------------
-  test-api-gateway:
-    runs-on: ubuntu-latest
-    steps:
-      - name: Checkout the submodule api-gateway
-        uses: actions/checkout@v4
-        with:
-          submodules: true
-
-      - name: Set up JDK 21
-        uses: actions/setup-java@v4
-        with:
-          java-version: '21'
-          distribution: 'temurin'
-          cache: 'maven'
-
-      - name: Run the api-gateway tests
-        run: |
-          chmod +x ./submodules/api-gateway/mvnw
-          ./submodules/api-gateway/mvnw -f ./submodules/api-gateway/pom.xml clean test
+          chmod +x ./submodules/${{ matrix.service }}/mvnw
+          ./submodules/${{ matrix.service }}/mvnw -f ./submodules/${{ matrix.service }}/pom.xml clean test
 
   #-----------------------------------------------------------------------
   #--- Test mflibrary-frontend
