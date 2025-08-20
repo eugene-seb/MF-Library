@@ -268,14 +268,14 @@ jobs:
 
       - name: Install dependencies
         run: npm ci
-        working-directory: ./mflibrary-frontend
+        working-directory: ./submodules/mflibrary-frontend
 
       - name: Install Chrome
         run: sudo apt-get update && sudo apt-get install -y google-chrome-stable
 
       - name: Run frontend tests
         run: npx ng test --watch=false --browsers=ChromeHeadless
-        working-directory: ./mflibrary-frontend
+        working-directory: ./submodules/mflibrary-frontend
 
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v3
@@ -290,9 +290,9 @@ jobs:
       - name: Build and Push mflibrary-frontend Docker Image
         uses: docker/build-push-action@v5
         with:
-          context: ./mflibrary-frontend
+          context: ./submodules/mflibrary-frontend
           push: true
-          file: ./mflibrary-frontend/Dockerfile
+          file: ./submodules/mflibrary-frontend/Dockerfile
           tags: |
             ghcr.io/${{ github.repository }}/mflibrary-frontend:latest
             ghcr.io/${{ github.repository }}/mflibrary-frontend:${{ github.sha }}

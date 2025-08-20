@@ -150,11 +150,11 @@ jobs:
 
       - name: Install dependencies
         run: npm ci
-        working-directory: ./mflibrary-frontend
+        working-directory: ./submodules/mflibrary-frontend
 
       - name: Install Chrome
         run: sudo apt-get update && sudo apt-get install -y google-chrome-stable
 
       - name: Run frontend tests
         run: npx ng test --watch=false --browsers=ChromeHeadless
-        working-directory: ./mflibrary-frontend
+        working-directory: ./submodules/mflibrary-frontend
