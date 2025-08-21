@@ -36,6 +36,9 @@ jobs:
     strategy:
       matrix:
         service: [ api-gateway, registry-service, user-service, book-service, review-service ]
+    env:
+      IMAGE_TAG: ${{ github.sha }}
+      REPO_NAME: ${{ github.repository }}
 
     steps:
       - name: Checkout repository
@@ -54,6 +57,10 @@ jobs:
         run: |
           chmod +x ./submodules/${{ matrix.service }}/mvnw
           ./submodules/${{ matrix.service }}/mvnw -f ./submodules/${{ matrix.service }}/pom.xml clean test
+
+      # GitHub Container Registry enforces all repository paths to be lowercase.
+      - name: Set lowercase repo name
+        run: echo "REPO_LC=${REPO_NAME,,}" >> $GITHUB_ENV
 
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v3
@@ -74,10 +81,10 @@ jobs:
           context: ./submodules/${{ matrix.service }}
           push: true
           tags: |
-            ghcr.io/${{ github.repository }}/${{ matrix.service }}:${{ github.sha }}
-            ghcr.io/${{ github.repository }}/${{ matrix.service }}:latest
-          cache-from: type=registry,ref=ghcr.io/${{ github.repository }}/${{ matrix.service }}:buildcache
-          cache-to: type=registry,ref=ghcr.io/${{ github.repository }}/${{ matrix.service }}:buildcache,mode=max
+            ghcr.io/${{ env.REPO_LC }}/${{ matrix.service }}:${{ env.IMAGE_TAG }}
+            ghcr.io/${{ env.REPO_LC }}/${{ matrix.service }}:latest
+          cache-from: type=registry,ref=ghcr.io/${{ env.REPO_LC }}/${{ matrix.service }}:buildcache
+          cache-to: type=registry,ref=ghcr.io/${{ env.REPO_LC }}/${{ matrix.service }}:buildcache,mode=max
 
   #-----------------------------------------------------------------------
   #--- Build and push mflibrary-frontend Docker image
@@ -85,6 +92,10 @@ jobs:
   build-mflibrary-frontend:
     needs: validate-branch
     runs-on: ubuntu-latest
+    env:
+      IMAGE_TAG: ${{ github.sha }}
+      REPO_NAME: ${{ github.repository }}
+
     steps:
       - name: Check out repository
         uses: actions/checkout@v4
@@ -107,6 +118,10 @@ jobs:
         run: npx ng test --watch=false --browsers=ChromeHeadless
         working-directory: ./submodules/mflibrary-frontend
 
+      # GitHub Container Registry enforces all repository paths to be lowercase.
+      - name: Set lowercase repo name
+        run: echo "REPO_LC=${REPO_NAME,,}" >> $GITHUB_ENV
+
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v3
         with:
@@ -127,9 +142,9 @@ jobs:
           push: true
           file: ./submodules/mflibrary-frontend/Dockerfile
           tags: |
-            ghcr.io/${{ github.repository }}/mflibrary-frontend:latest
-            ghcr.io/${{ github.repository }}/mflibrary-frontend:${{ github.sha }}
+            ghcr.io/${{ env.REPO_LC }}/mflibrary-frontend:latest
+            ghcr.io/${{ env.REPO_LC }}/mflibrary-frontend:${{ env.IMAGE_TAG }}
           # Use Docker build cache stored in GitHub Container Registry to speed up builds.
           # 'cache-from' pulls existing cache layers; 'cache-to' pushes new layers for future
-          cache-from: type=registry,ref=ghcr.io/${{ github.repository }}/mflibrary-frontend:buildcache
-          cache-to: type=registry,ref=ghcr.io/${{ github.repository }}/mflibrary-frontend:buildcache,mode=max
+          cache-from: type=registry,ref=ghcr.io/${{ env.REPO_LC }}/mflibrary-frontend:buildcache
+          cache-to: type=registry,ref=ghcr.io/${{ env.REPO_LC }}/mflibrary-frontend:buildcache,mode=max
