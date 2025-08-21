@@ -1,9 +1,19 @@
 # Execute only if it's a PR which comes from dev
+
 name: PR to master
+
+# This pipeline runs everytime there is a PR on master.
+# Because the changes on the submodules are track on their own GitHub project,
+# I intentionally don't listen to the changes of each submodule in order to trigger this pipeline.
+
 on:
   pull_request:
     branches:
       - master  # I allow only PR from dev -> master
+
+permissions:
+  contents: read
+  packages: write
 
 jobs:
   #-----------------------------------------------------------------------
@@ -22,53 +32,20 @@ jobs:
           fi
 
   #-----------------------------------------------------------------------
-  #--- Detect the changes
+  #--- Build backend services
   #-----------------------------------------------------------------------
-  changes:
-    runs-on: ubuntu-latest
+  build-backend-services:
     needs: validate-branch
-    if: success()
-    steps:
-      - name: Checkout the main repository
-        uses: actions/checkout@v4
-        with:
-          submodules: true
-
-      - name: Detect changes
-        id: filter
-        uses: dorny/paths-filter@v3
-        with:
-          filters: |
-            user:
-              - 'submodules/user-service/**'
-            book:
-              - 'submodules/book-service/**'
-            review:
-              - 'submodules/review-service/**'
-            api_gateway:
-              - 'submodules/api-gateway/**'
-            registry_service:
-              - 'submodules/registry-service/**'
-            frontend:
-              - 'mflibrary-frontend/**'
-    outputs:
-      user: ${{ steps.filter.outputs.user }}
-      book: ${{ steps.filter.outputs.book }}
-      review: ${{ steps.filter.outputs.review }}
-      api_gateway: ${{ steps.filter.outputs.api_gateway }}
-      registry_service: ${{ steps.filter.outputs.registry_service }}
-      frontend: ${{ steps.filter.outputs.frontend }}
-
-  #-----------------------------------------------------------------------
-  #--- Build and push user-service Docker image
-  #-----------------------------------------------------------------------
-  build-user-service:
-    needs: changes
-    if: needs.changes.outputs.user == 'true'
     runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        service: [ api-gateway, registry-service, user-service, book-service, review-service ]
+    env:
+      IMAGE_TAG: ${{ github.sha }}
+      REPO_NAME: ${{ github.repository }}
 
     steps:
-      - name: Checkout the submodule user-service
+      - name: Checkout repository
         uses: actions/checkout@v4
         with:
           submodules: true
@@ -80,10 +57,20 @@ jobs:
           distribution: 'temurin'
           cache: 'maven'
 
-      - name: Run the user-service tests
+      - name: Run tests
         run: |
-          chmod +x ./submodules/user-service/mvnw
-          ./submodules/user-service/mvnw -f ./submodules/user-service/pom.xml clean test
+          chmod +x ./submodules/${{ matrix.service }}/mvnw
+          ./submodules/${{ matrix.service }}/mvnw -f ./submodules/${{ matrix.service }}/pom.xml clean test
+
+      # GitHub Container Registry enforces all repository paths to be lowercase.
+      - name: Set lowercase repo name
+        run: echo "REPO_LC=${REPO_NAME,,}" >> $GITHUB_ENV
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+        with:
+          install: true
+          driver: docker-container
 
       - name: Login to GitHub Container Registry
         uses: docker/login-action@v3
@@ -92,179 +79,30 @@ jobs:
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Build and push user-service Docker image
+      - name: Build and push Docker image
         uses: docker/build-push-action@v6
         with:
-          context: ./submodules/user-service
+          context: ./submodules/${{ matrix.service }}
           push: true
-          tags: ghcr.io/${{ github.repository }}/user-service:latest
-
-  #-----------------------------------------------------------------------
-  #--- Build and push book-service Docker image
-  #-----------------------------------------------------------------------
-  build-book-service:
-    needs: changes
-    if: needs.changes.outputs.book == 'true'
-    runs-on: ubuntu-latest
-
-    steps:
-      - name: Checkout the submodule book-service
-        uses: actions/checkout@v4
-        with:
-          submodules: true
-
-      - name: Set up JDK 21
-        uses: actions/setup-java@v4
-        with:
-          java-version: '21'
-          distribution: 'temurin'
-          cache: 'maven'
-
-      - name: Run the book-service tests
-        run: |
-          chmod +x ./submodules/book-service/mvnw
-          ./submodules/book-service/mvnw -f ./submodules/book-service/pom.xml clean test
-
-      - name: Login to GitHub Container Registry
-        uses: docker/login-action@v3
-        with:
-          registry: ghcr.io
-          username: ${{ github.actor }}
-          password: ${{ secrets.GITHUB_TOKEN }}
-
-      - name: Build and push book-service Docker image
-        uses: docker/build-push-action@v6
-        with:
-          context: ./submodules/book-service
-          push: true
-          tags: ghcr.io/${{ github.repository }}/book-service:latest
-
-  #-----------------------------------------------------------------------
-  #--- Build and push review-service Docker image
-  #-----------------------------------------------------------------------
-  build-review-service:
-    needs: changes
-    if: needs.changes.outputs.review == 'true'
-    runs-on: ubuntu-latest
-    steps:
-      - name: Checkout the submodule review-service
-        uses: actions/checkout@v4
-        with:
-          submodules: true
-
-      - name: Set up JDK 21
-        uses: actions/setup-java@v4
-        with:
-          java-version: '21'
-          distribution: 'temurin'
-          cache: 'maven'
-
-      - name: Run the review-service tests
-        run: |
-          chmod +x ./submodules/review-service/mvnw
-          ./submodules/review-service/mvnw -f ./submodules/review-service/pom.xml clean test
-
-      - name: Login to GitHub Container Registry
-        uses: docker/login-action@v3
-        with:
-          registry: ghcr.io
-          username: ${{ github.actor }}
-          password: ${{ secrets.GITHUB_TOKEN }}
-
-      - name: Build and push review-service Docker image
-        uses: docker/build-push-action@v6
-        with:
-          context: ./submodules/review-service
-          push: true
-          tags: ghcr.io/${{ github.repository }}/review-service:latest
-
-  #-----------------------------------------------------------------------
-  #--- Build and push registry-service Docker image
-  #-----------------------------------------------------------------------
-  build-registry-service:
-    needs: changes
-    if: needs.changes.outputs.registry_service == 'true'
-    runs-on: ubuntu-latest
-    steps:
-      - name: Checkout the submodule registry-service
-        uses: actions/checkout@v4
-        with:
-          submodules: true
-
-      - name: Set up JDK 21
-        uses: actions/setup-java@v4
-        with:
-          java-version: '21'
-          distribution: 'temurin'
-          cache: 'maven'
-
-      - name: Run the registry-service tests
-        run: |
-          chmod +x ./submodules/registry-service/mvnw
-          ./submodules/registry-service/mvnw -f ./submodules/registry-service/pom.xml clean test
-
-      - name: Login to GitHub Container Registry
-        uses: docker/login-action@v3
-        with:
-          registry: ghcr.io
-          username: ${{ github.actor }}
-          password: ${{ secrets.GITHUB_TOKEN }}
-
-      - name: Build and push registry-service Docker image
-        uses: docker/build-push-action@v6
-        with:
-          context: ./submodules/registry-service
-          push: true
-          tags: ghcr.io/${{ github.repository }}/registry-service:latest
-
-  #-----------------------------------------------------------------------
-  #--- Build and push api-gateway Docker image
-  #-----------------------------------------------------------------------
-  build-api-gateway:
-    needs: changes
-    if: needs.changes.outputs.api_gateway == 'true'
-    runs-on: ubuntu-latest
-    steps:
-      - name: Checkout the submodule api-gateway
-        uses: actions/checkout@v4
-        with:
-          submodules: true
-
-      - name: Set up JDK 21
-        uses: actions/setup-java@v4
-        with:
-          java-version: '21'
-          distribution: 'temurin'
-          cache: 'maven'
-
-      - name: Run the api-gateway tests
-        run: |
-          chmod +x ./submodules/api-gateway/mvnw
-          ./submodules/api-gateway/mvnw -f ./submodules/api-gateway/pom.xml clean test
-
-      - name: Login to GitHub Container Registry
-        uses: docker/login-action@v3
-        with:
-          registry: ghcr.io
-          username: ${{ github.actor }}
-          password: ${{ secrets.GITHUB_TOKEN }}
-
-      - name: Build and push api-gateway Docker image
-        uses: docker/build-push-action@v6
-        with:
-          context: ./submodules/api-gateway
-          push: true
-          tags: ghcr.io/${{ github.repository }}/api-gateway:latest
+          tags: |
+            ghcr.io/${{ env.REPO_LC }}/${{ matrix.service }}:${{ env.IMAGE_TAG }}
+            ghcr.io/${{ env.REPO_LC }}/${{ matrix.service }}:latest
+          cache-from: type=registry,ref=ghcr.io/${{ env.REPO_LC }}/${{ matrix.service }}:buildcache
+          cache-to: type=registry,ref=ghcr.io/${{ env.REPO_LC }}/${{ matrix.service }}:buildcache,mode=max
 
   #-----------------------------------------------------------------------
   #--- Build and push mflibrary-frontend Docker image
   #-----------------------------------------------------------------------
   build-mflibrary-frontend:
-    needs: changes
-    if: needs.changes.outputs.frontend == 'true'
+    needs: validate-branch
     runs-on: ubuntu-latest
+    env:
+      IMAGE_TAG: ${{ github.sha }}
+      REPO_NAME: ${{ github.repository }}
+
     steps:
-      - uses: actions/checkout@v4
+      - name: Check out repository
+        uses: actions/checkout@v4
         with:
           submodules: true
 
@@ -275,22 +113,42 @@ jobs:
 
       - name: Install dependencies
         run: npm ci
-        working-directory: ./mflibrary-frontend
+        working-directory: ./submodules/mflibrary-frontend
+
+      - name: Install Chrome
+        run: sudo apt-get update && sudo apt-get install -y google-chrome-stable
 
       - name: Run frontend tests
-        run: npm test -- --watch=false --browsers=ChromeHeadless
-        working-directory: ./mflibrary-frontend
+        run: npx ng test --watch=false --browsers=ChromeHeadless
+        working-directory: ./submodules/mflibrary-frontend
 
-      - name: Login to GitHub Container Registry
+      # GitHub Container Registry enforces all repository paths to be lowercase.
+      - name: Set lowercase repo name
+        run: echo "REPO_LC=${REPO_NAME,,}" >> $GITHUB_ENV
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+        with:
+          install: true
+          driver: docker-container
+
+      - name: Log in to GitHub Container Registry
         uses: docker/login-action@v3
         with:
           registry: ghcr.io
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Build and push mflibrary-frontend Docker image
-        uses: docker/build-push-action@v6
+      - name: Build and Push mflibrary-frontend Docker Image
+        uses: docker/build-push-action@v5
         with:
-          context: ./mflibrary-frontend
+          context: ./submodules/mflibrary-frontend
           push: true
-          tags: ghcr.io/${{ github.repository }}/mflibrary-frontend:latest
+          file: ./submodules/mflibrary-frontend/Dockerfile
+          tags: |
+            ghcr.io/${{ env.REPO_LC }}/mflibrary-frontend:latest
+            ghcr.io/${{ env.REPO_LC }}/mflibrary-frontend:${{ env.IMAGE_TAG }}
+          # Use Docker build cache stored in GitHub Container Registry to speed up builds.
+          # 'cache-from' pulls existing cache layers; 'cache-to' pushes new layers for future
+          cache-from: type=registry,ref=ghcr.io/${{ env.REPO_LC }}/mflibrary-frontend:buildcache
+          cache-to: type=registry,ref=ghcr.io/${{ env.REPO_LC }}/mflibrary-frontend:buildcache,mode=max
