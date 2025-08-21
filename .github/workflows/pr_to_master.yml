@@ -81,10 +81,10 @@ jobs:
           context: ./submodules/${{ matrix.service }}
           push: true
           tags: |
-            ghcr.io/${{ env.REPO_LC }}/${{ matrix.service }}:${{ env.IMAGE_TAG }}
-            ghcr.io/${{ env.REPO_LC }}/${{ matrix.service }}:latest
-          cache-from: type=registry,ref=ghcr.io/${{ env.REPO_LC }}/${{ matrix.service }}:buildcache
-          cache-to: type=registry,ref=ghcr.io/${{ env.REPO_LC }}/${{ matrix.service }}:buildcache,mode=max
+            ghcr.io/${{ env.REPO_LC }}/mflibrary-${{ matrix.service }}:${{ env.IMAGE_TAG }}
+            ghcr.io/${{ env.REPO_LC }}/mflibrary-${{ matrix.service }}:latest
+          cache-from: type=registry,ref=ghcr.io/${{ env.REPO_LC }}/mflibrary-${{ matrix.service }}:buildcache
+          cache-to: type=registry,ref=ghcr.io/${{ env.REPO_LC }}/mflibrary-${{ matrix.service }}:buildcache,mode=max
 
   #-----------------------------------------------------------------------
   #--- Build and push mflibrary-frontend Docker image
@@ -142,9 +142,9 @@ jobs:
           push: true
           file: ./submodules/mflibrary-frontend/Dockerfile
           tags: |
-            ghcr.io/${{ env.REPO_LC }}/mflibrary-frontend:latest
-            ghcr.io/${{ env.REPO_LC }}/mflibrary-frontend:${{ env.IMAGE_TAG }}
+            ghcr.io/${{ env.REPO_LC }}/mflibrary-mflibrary-frontend:latest
+            ghcr.io/${{ env.REPO_LC }}/mflibrary-mflibrary-frontend:${{ env.IMAGE_TAG }}
           # Use Docker build cache stored in GitHub Container Registry to speed up builds.
           # 'cache-from' pulls existing cache layers; 'cache-to' pushes new layers for future
-          cache-from: type=registry,ref=ghcr.io/${{ env.REPO_LC }}/mflibrary-frontend:buildcache
-          cache-to: type=registry,ref=ghcr.io/${{ env.REPO_LC }}/mflibrary-frontend:buildcache,mode=max
+          cache-from: type=registry,ref=ghcr.io/${{ env.REPO_LC }}/mflibrary-mflibrary-frontend:buildcache
+          cache-to: type=registry,ref=ghcr.io/${{ env.REPO_LC }}/mflibrary-mflibrary-frontend:buildcache,mode=max
