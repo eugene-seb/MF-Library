@@ -8,7 +8,7 @@
 
 #### 3- Add a Submodule (Sub-Repository):
 
-`git submodule add https://github.com/your-username/SubRepo.git submodules/SubRepo`
+- `git submodule add https://github.com/your-username/SubRepo.git submodules/SubRepo`
 
 Example of adding submodules to the main repo:
 
@@ -20,7 +20,7 @@ Example of adding submodules to the main repo:
 
 #### 4- Commit and Push Changes to GitHub:
 
-- `git add .gitmodules submodules/<SubRepo>`
+- `git add .gitmodules submodules/` or `git add .gitmodules submodules/<SubRepo>`
 - `git commit -m "Added <submodule>"`
 - `git push origin master`
 
@@ -28,12 +28,15 @@ Example of adding submodules to the main repo:
 
 5- Cloning the Main Repository with Submodules:
 
-`git clone --recurse-submodules https://github.com/eugene-seb/MF-Library.git`
+- `git clone --recurse-submodules https://github.com/eugene-seb/MF-Library.git`
 
 ### Bring changes on the main repo
 
 6- If the submodule updates, run on the main repo:
 
-`git submodule update --remote --merge`
+- `git submodule update --remote --merge`
 
-And the push.
+It will update the reference of these submodules on the main repository. The only thing left is
+to push:
+
+- `git push origin master`
