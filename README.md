@@ -461,8 +461,7 @@ A: Architecture enables it; orchestration (Kubernetes) is a future milestone.
 
 ## 📄 License
 
-License not yet finalized. Recommended candidates: MIT or Apache-2.0.  
-(Planned: add `LICENSE` file and badge.)
+This project is licensed under the [MIT License](LICENSE.txt).
 
 ---
 
